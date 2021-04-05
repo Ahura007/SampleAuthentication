@@ -21,10 +21,10 @@ namespace SampleAuthentication.Controllers
     public class FundUsersController : ApiControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly UserManager<User> _userManager;
 
-        public FundUsersController(UserManager<User> userManager, RoleManager<Role> roleManager, ApplicationDbContext context)
+        public FundUsersController(UserManager<User> userManager, RoleManager<Role> roleManager,ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -45,7 +45,8 @@ namespace SampleAuthentication.Controllers
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -57,16 +58,17 @@ namespace SampleAuthentication.Controllers
             {
                 var user = await _userManager.FindByIdAsync(id);
                 if (user is null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 var userDto = MapToDto(user);
 
-                return Ok(new { content = userDto });
+                return Ok(new {content = userDto});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -79,7 +81,8 @@ namespace SampleAuthentication.Controllers
 
                 var userAlreadyRegistered = await _userManager.FindByNameAsync(command.UserName) != null;
                 if (userAlreadyRegistered)
-                    return StatusCode((int)HttpStatusCode.Conflict, new { message = "نام کاربری وارد شده تکراری می باشد" });
+                    return StatusCode((int) HttpStatusCode.Conflict,
+                        new {message = "نام کاربری وارد شده تکراری می باشد"});
 
                 var user = new User(command.UserName, $"{command.FirstName}|{command.LastName}")
                 {
@@ -90,16 +93,17 @@ namespace SampleAuthentication.Controllers
                 };
 
                 await RegisterUser(command, user);
-                return Ok(new { content = user.Id, message = ApiMessages.Ok });
+                return Ok(new {content = user.Id, message = ApiMessages.Ok});
             }
             catch (CommandValidationException exception)
             {
-                return BadRequest(new { message = exception.Message });
+                return BadRequest(new {message = exception.Message});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -112,7 +116,7 @@ namespace SampleAuthentication.Controllers
 
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 if (!command.IsActive)
                     await DeActiveFundUser(user, id);
@@ -123,16 +127,17 @@ namespace SampleAuthentication.Controllers
                 user.IsActive = command.IsActive;
                 await _userManager.UpdateAsync(user);
 
-                return Ok(new { content = user.Id, message = ApiMessages.Ok });
+                return Ok(new {content = user.Id, message = ApiMessages.Ok});
             }
             catch (CommandValidationException exception)
             {
-                return BadRequest(new { message = exception.Message });
+                return BadRequest(new {message = exception.Message});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -143,7 +148,7 @@ namespace SampleAuthentication.Controllers
             {
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 var roles = await GetRolesAsync();
                 var userRolesDto = new List<UserRoleDto>();
@@ -158,7 +163,7 @@ namespace SampleAuthentication.Controllers
                     });
                 });
 
-                return Ok(new { content = userRolesDto });
+                return Ok(new {content = userRolesDto});
             }
             catch (CommandValidationException exception)
             {
@@ -167,7 +172,8 @@ namespace SampleAuthentication.Controllers
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -180,31 +186,30 @@ namespace SampleAuthentication.Controllers
 
                 var user = await _userManager.FindByIdAsync(id);
                 if (user is null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 var userRoles = await _userManager.GetRolesAsync(user);
 
                 await _userManager.RemoveFromRolesAsync(user, userRoles);
                 foreach (var roleId in command.RoleIds)
-                {
                     _context.UserRoles.Add(new IdentityUserRole<string>
                     {
                         RoleId = roleId,
                         UserId = user.Id
                     });
-                }
 
                 await _context.SaveChangesAsync();
-                return Ok(new { message = ApiMessages.Ok });
+                return Ok(new {message = ApiMessages.Ok});
             }
             catch (CommandValidationException exception)
             {
-                return BadRequest(new { message = exception.Message });
+                return BadRequest(new {message = exception.Message});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -218,24 +223,25 @@ namespace SampleAuthentication.Controllers
 
                 var user = await _userManager.FindByIdAsync(id);
                 if (user is null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 var role = await _roleManager.FindByIdAsync(command.RoleId);
                 if (role is null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "نقش مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "نقش مورد نظر یافت نشد"});
 
                 await _userManager.RemoveFromRoleAsync(user, role.Name);
 
-                return Ok(new { message = ApiMessages.Ok });
+                return Ok(new {message = ApiMessages.Ok});
             }
             catch (CommandValidationException exception)
             {
-                return BadRequest(new { message = exception.Message });
+                return BadRequest(new {message = exception.Message});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -247,17 +253,18 @@ namespace SampleAuthentication.Controllers
             {
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 user.Active();
                 await _userManager.UpdateAsync(user);
 
-                return Ok(new { message = ApiMessages.Ok });
+                return Ok(new {message = ApiMessages.Ok});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -269,18 +276,19 @@ namespace SampleAuthentication.Controllers
             {
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
-                    return StatusCode((int)HttpStatusCode.NotFound, new { message = "کاربر مورد نظر یافت نشد" });
+                    return StatusCode((int) HttpStatusCode.NotFound, new {message = "کاربر مورد نظر یافت نشد"});
 
                 await DeActiveFundUser(user, userId);
 
                 await _userManager.UpdateAsync(user);
 
-                return Ok(new { message = ApiMessages.Ok });
+                return Ok(new {message = ApiMessages.Ok});
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.Message);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "متاسفانه خطای سیستمی رخ داده است" });
+                return StatusCode((int) HttpStatusCode.InternalServerError,
+                    new {message = "متاسفانه خطای سیستمی رخ داده است"});
             }
         }
 
@@ -302,7 +310,7 @@ namespace SampleAuthentication.Controllers
         private async Task RegisterUser(RegisterUserCommand command, User user)
         {
             await _userManager.CreateAsync(user, command.Password);
-            await _userManager.AddToRolesAsync(user, new[] { RoleType.FundUser.ToString() });
+            await _userManager.AddToRolesAsync(user, new[] {RoleType.FundUser.ToString()});
         }
 
         private UserDto MapToDto(User user)
@@ -354,7 +362,7 @@ namespace SampleAuthentication.Controllers
         private static IList<User> FilterUsers(IEnumerable<User> systemUsers, string search)
         {
             return systemUsers.Where(q =>
-                   q.Name.Contains(search) ||
+                    q.Name.Contains(search) ||
                     q.UserName.Contains(search) ||
                     q.PhoneNumber.Contains(search))
                 .ToList();

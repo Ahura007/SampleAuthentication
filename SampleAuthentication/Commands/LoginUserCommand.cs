@@ -24,8 +24,8 @@ namespace SampleAuthentication.Commands
         {
             RuleFor(p => p.UserName).NotEmpty().WithMessage("نام کاربری یا رمز عبور صحیح نمی باشد");
             RuleFor(p => p.Password).NotEmpty().WithMessage("نام کاربری یا رمز عبور صحیح نمی باشد");
-            RuleFor(p => p.CaptchaId).NotEmpty().WithMessage("کد امنیتی نامعتبر می باشد");
-            RuleFor(p => p.CaptchaCode).NotEmpty().WithMessage("کد امنیتی صحیح نمی باشد");
+            //RuleFor(p => p.CaptchaId).NotEmpty().WithMessage("کد امنیتی نامعتبر می باشد");
+            //RuleFor(p => p.CaptchaCode).NotEmpty().WithMessage("کد امنیتی صحیح نمی باشد");
         }
 	}
 }

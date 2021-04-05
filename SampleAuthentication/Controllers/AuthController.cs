@@ -24,14 +24,14 @@ namespace SampleAuthentication.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
+        private readonly IConfiguration _configuration;
         private readonly IJwtFactory _jwtFactory;
         private readonly JwtIssuerOptions _jwtOptions;
+        private readonly RoleManager<Role> _roleManager;
         private readonly ISmsSender _smsSender;
-        private readonly IConfiguration _configuration;
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager,
-            IJwtFactory jwtFactory, IOptions<JwtIssuerOptions> jwtOptions,
+        private readonly UserManager<User> _userManager;
+
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, IJwtFactory jwtFactory, IOptions<JwtIssuerOptions> jwtOptions,
             ISmsSender smsSender, IConfiguration configuration)
         {
             _userManager = userManager;
@@ -43,7 +43,6 @@ namespace SampleAuthentication.Controllers
         }
 
 
-
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginUserCommand command)
         {
@@ -53,7 +52,7 @@ namespace SampleAuthentication.Controllers
             CheckPhoneNumberConfirmation(user);
 
             if (!await CheckFundUserIsActive(user))
-                return StatusCode((int)HttpStatusCode.BadRequest, new { message = "شما مجوز ورود به سامانه را ندارید" });
+                return StatusCode((int) HttpStatusCode.BadRequest, new {message = "شما مجوز ورود به سامانه را ندارید"});
 
             var generatedToken = TokenGenerator.EmptyToken;
             var isTwoFactorEnabled = await CheckIfTwoFactorIsEnabled(user);
@@ -61,14 +60,15 @@ namespace SampleAuthentication.Controllers
                 await SendTwoFactorTokenToUser(user);
             else
                 generatedToken = await Login(user);
-            return new OkObjectResult(new { Token = generatedToken, TwoFactorEnabled = isTwoFactorEnabled, UserId = user.Id });
+            return new OkObjectResult(new
+                {Token = generatedToken, TwoFactorEnabled = isTwoFactorEnabled, UserId = user.Id});
         }
-
 
 
         [HttpPost]
         [Route("/api/users/{userId}/verify/two-factor-verification")]
-        public async Task<IActionResult> VerifyTwoFactorVerification(Guid userId, VerifyTwoFactorVerificationCommand command)
+        public async Task<IActionResult> VerifyTwoFactorVerification(Guid userId,
+            VerifyTwoFactorVerificationCommand command)
         {
             CommandValidator.Validate(command);
             var user = await GetUserById(userId);
@@ -77,8 +77,6 @@ namespace SampleAuthentication.Controllers
             var accessToken = await Login(user);
             return new OkObjectResult(accessToken);
         }
-
-
 
 
         #region PrivateMethods
@@ -125,8 +123,8 @@ namespace SampleAuthentication.Controllers
 
         private void CheckPhoneNumberConfirmation(User user)
         {
-            if (!user.PhoneNumberConfirmed)
-                throw new ArgumentException("حساب کاربری شما فعال نشده است");
+            //if (!user.PhoneNumberConfirmed)
+            //    throw new ArgumentException("حساب کاربری شما فعال نشده است");
         }
 
         private async Task CheckUserPassword(User user, string password)
@@ -147,6 +145,7 @@ namespace SampleAuthentication.Controllers
             var twoFactorToken = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
             await _smsSender.SendSmsAsync($"کد تایید شما عبارت است از: {twoFactorToken}", user.PhoneNumber);
         }
+
         private async Task<bool> CheckIfTwoFactorIsEnabled(User user)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -154,6 +153,7 @@ namespace SampleAuthentication.Controllers
                 return bool.Parse(_configuration.GetSection("HasTwoFactorLoginForCustomers").Value);
             return user.TwoFactorEnabled;
         }
+
         private async Task SaveLastLoginInfo(User user)
         {
             user.TotalLoginCount += 1;
@@ -167,7 +167,8 @@ namespace SampleAuthentication.Controllers
             var identity = await GetClaimsIdentity(user.UserName, user.Id);
             var userRoles = await _userManager.GetRolesAsync(user);
             var userRoleIds = GetUserRoleIds(userRoles);
-            var generatedToken = TokenGenerator.GenerateJwt(user, userRoles.ToList(), userRoleIds.ToList(), identity, _jwtFactory, _jwtOptions, new JsonSerializerSettings { Formatting = Formatting.Indented });
+            var generatedToken = TokenGenerator.GenerateJwt(user, userRoles.ToList(), userRoleIds.ToList(), identity,
+                _jwtFactory, _jwtOptions, new JsonSerializerSettings {Formatting = Formatting.Indented});
             return generatedToken;
         }
 

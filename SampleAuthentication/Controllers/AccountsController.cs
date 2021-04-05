@@ -11,16 +11,15 @@ using SampleAuthentication.Helpers;
 using SampleAuthentication.Models;
 using SampleAuthentication.SeedWorks;
 using SampleAuthentication.SmsSenders;
-using CommandValidationException = SampleAuthentication.SeedWorks.CommandValidationException;
 
 namespace SampleAuthentication.Controllers
 {
     [Route("api/[controller]")]
     public class AccountsController : ApiControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly ISmsSender _smsSender;
         private readonly IConfiguration _configuration;
+        private readonly ISmsSender _smsSender;
+        private readonly UserManager<User> _userManager;
 
         public AccountsController(
             UserManager<User> userManager,
@@ -31,7 +30,7 @@ namespace SampleAuthentication.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost("customers")]
+        [HttpPost("RegisterCustomers")]
         public async Task<IActionResult> RegisterCustomers(RegisterCustomerCommand command)
         {
             try
@@ -40,13 +39,14 @@ namespace SampleAuthentication.Controllers
 
                 var customerAlreadyRegistered = await _userManager.FindByNameAsync(command.UserName) != null;
                 if (customerAlreadyRegistered)
-                    return StatusCode((int)HttpStatusCode.Conflict, new { message = "نام کاربری وارد شده تکراری می باشد" });
+                    return StatusCode((int) HttpStatusCode.Conflict,
+                        new {message = "نام کاربری وارد شده تکراری می باشد"});
                 var newCustomer = new User(command.UserName, command.Name)
                 {
                     Id = command.Id.ToString(),
                     PhoneNumber = command.PhoneNumber,
                     NormalizedUserName = command.UserName,
-                    PhoneNumberConfirmed = false,
+                    PhoneNumberConfirmed = false
                 };
 
                 await _userManager.CreateAsync(newCustomer, command.Password);
@@ -57,7 +57,7 @@ namespace SampleAuthentication.Controllers
 
                 Console.WriteLine($"{command.UserName} : {code}");
 
-                return Ok(new { message = newCustomer.Id });
+                return Ok(new {message = newCustomer.Id});
             }
             catch (CommandValidationException exception)
             {
@@ -65,7 +65,7 @@ namespace SampleAuthentication.Controllers
             }
             catch (Exception exception)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError, exception.Message);
+                return StatusCode((int) HttpStatusCode.InternalServerError, exception.Message);
             }
         }
 
@@ -86,7 +86,7 @@ namespace SampleAuthentication.Controllers
             }
             catch (Exception exception)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError, exception.Message);
+                return StatusCode((int) HttpStatusCode.InternalServerError, exception.Message);
             }
         }
 
@@ -102,7 +102,8 @@ namespace SampleAuthentication.Controllers
                     message = "کاربر یافت نشد"
                 });
 
-            var verificationCodeIsValid = await _userManager.VerifyChangePhoneNumberTokenAsync(user, command.Code, user.PhoneNumber);
+            var verificationCodeIsValid =
+                await _userManager.VerifyChangePhoneNumberTokenAsync(user, command.Code, user.PhoneNumber);
             if (verificationCodeIsValid)
             {
                 user.PhoneNumberConfirmed = true;
@@ -110,11 +111,11 @@ namespace SampleAuthentication.Controllers
 
                 return Ok();
             }
-            else
-                return BadRequest(new
-                {
-                    message = "کد وارد شده اشتباه می باشد"
-                });
+
+            return BadRequest(new
+            {
+                message = "کد وارد شده اشتباه می باشد"
+            });
         }
 
         [HttpPost("{userId}/verificationCode/resend")]
@@ -150,7 +151,7 @@ namespace SampleAuthentication.Controllers
             await _smsSender.SendSmsAsync(PrepareForgetPasswordSms(code), user.PhoneNumber);
             Console.WriteLine($"{user.UserName} : {code}");
 
-            return Ok(new { message = user.Id });
+            return Ok(new {message = user.Id});
         }
 
         [HttpPost("{userId}/reset-password")]
@@ -158,14 +159,15 @@ namespace SampleAuthentication.Controllers
         {
             CommandValidator.Validate(command);
 
-            var user = await _userManager.FindByIdAsync(userId.ToString());            
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
                 return NotFound(new
                 {
                     message = "کاربر یافت نشد"
                 });
 
-            var verificationCodeIsValid = await _userManager.VerifyChangePhoneNumberTokenAsync(user, command.Code, user.PhoneNumber);
+            var verificationCodeIsValid =
+                await _userManager.VerifyChangePhoneNumberTokenAsync(user, command.Code, user.PhoneNumber);
             if (verificationCodeIsValid)
             {
                 await _userManager.RemovePasswordAsync(user);
@@ -194,7 +196,7 @@ namespace SampleAuthentication.Controllers
             await _userManager.RemovePasswordAsync(user);
             await _userManager.AddPasswordAsync(user, defaultPassword);
 
-            return Ok(new { message = ApiMessages.Ok });
+            return Ok(new {message = ApiMessages.Ok});
         }
 
         [HttpPut("{userId}/password/old")]
@@ -213,7 +215,7 @@ namespace SampleAuthentication.Controllers
 
             await _userManager.UpdateAsync(user);
 
-            return Ok(new { message = ApiMessages.Ok });
+            return Ok(new {message = ApiMessages.Ok});
         }
 
         [Authorize]
@@ -237,11 +239,12 @@ namespace SampleAuthentication.Controllers
                 var user = await _userManager.FindByIdAsync(UserId.ToString());
 
                 if (user == null)
-                    return NotFound(new { message = "کاربری یافت نشد" });
+                    return NotFound(new {message = "کاربری یافت نشد"});
 
-                var operationSucceeded = await _userManager.ChangePasswordAsync(user, command.CurrentPassword, command.NewPassword);
+                var operationSucceeded =
+                    await _userManager.ChangePasswordAsync(user, command.CurrentPassword, command.NewPassword);
                 if (operationSucceeded.Succeeded)
-                    return Ok(new { message = ApiMessages.Ok });
+                    return Ok(new {message = ApiMessages.Ok});
 
                 return BadRequest(new
                 {
@@ -250,7 +253,7 @@ namespace SampleAuthentication.Controllers
             }
             catch (Exception)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError);
+                return StatusCode((int) HttpStatusCode.InternalServerError);
             }
         }
 
@@ -264,21 +267,22 @@ namespace SampleAuthentication.Controllers
             var newRandomPassword = Guid.NewGuid().ToString().Substring(0, 6);
             await _userManager.AddPasswordAsync(user, newRandomPassword);
 
-            await _smsSender.SendSmsAsync($"مشتری گرامی . کلمه عبور جدید شما برابر است با : {newRandomPassword}", user.PhoneNumber);
+            await _smsSender.SendSmsAsync($"مشتری گرامی . کلمه عبور جدید شما برابر است با : {newRandomPassword}",
+                user.PhoneNumber);
 
-            return Ok(new { message = ApiMessages.Ok });
+            return Ok(new {message = ApiMessages.Ok});
         }
 
         #region PrivateMethods
 
         private string PrepareActivationCodeSms(string code)
         {
-            return  $"کد تایید شما عبارت است از: {code}";
+            return $"کد تایید شما عبارت است از: {code}";
         }
 
         private string PrepareForgetPasswordSms(string code)
         {
-            return  $"کد تغییر رمز عبور: {code}";
+            return $"کد تغییر رمز عبور: {code}";
         }
 
         private bool IsConfirmPassword(string passWord, string reEnterPassword)
@@ -288,7 +292,6 @@ namespace SampleAuthentication.Controllers
 
             return false;
         }
-
 
         #endregion
     }

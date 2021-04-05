@@ -16,9 +16,11 @@ namespace SampleAuthentication
             BuildWebHost(args).UseUrls(hostAddresses.HostAddress).Build().Seed().Run();
         }
 
-        public static IWebHostBuilder BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        public static IWebHostBuilder BuildWebHost(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>();
+        }
 
         private static HostAddresses ReadHostAddresses()
         {
