@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -67,6 +68,7 @@ namespace SampleAuthentication
 
         private static void ConfigureCors(IServiceCollection services)
         {
+            // tofe
             services.AddCors(o => o.AddPolicy("Policy", corsBuilder =>
             {
                 corsBuilder.AllowAnyOrigin()
@@ -74,6 +76,39 @@ namespace SampleAuthentication
                     .AllowAnyHeader()
                     .AllowCredentials();
             }));
+
+            // api user claim policy
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ApiUser",
+                    policy => policy.RequireClaim(Constants.Strings.JwtClaimIdentifiers.Rol,
+                        Constants.Strings.JwtClaims.ApiAccess));
+            });
+
+            //services.AddCors(policy =>
+            //{
+            //    policy.AddPolicy("LoginPost", builder =>
+            //    {
+            //        builder.WithOrigins("http://localhost:4200").WithMethods("Post").WithHeaders("accept", "content-type", "origin");
+            //    });
+
+            //    policy.AddPolicy("Post", builder =>
+            //    {
+            //        builder.WithOrigins("http://localhost:4200").WithMethods("Post").WithHeaders("accept", "content-type");
+            //    });
+
+            //    policy.AddPolicy("Get", builder =>
+            //    {
+            //        builder.WithOrigins("http://localhost:4200").WithMethods("Get").WithHeaders("Authorization", "content-type");
+            //    });
+            //});
+
+            //services.AddAuthorization(auth =>
+            //{
+            //    auth.AddPolicy("SuperAdmin", new AuthorizationPolicyBuilder().RequireRole("SuperAdmin").AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
+            //    auth.AddPolicy("Customer", new AuthorizationPolicyBuilder().RequireRole("Customer").AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
+            //});
+
         }
 
         private void ConfigureAppDependencies(IServiceCollection services)
@@ -158,13 +193,7 @@ namespace SampleAuthentication
              });
 
             
-            // api user claim policy
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("ApiUser",
-                    policy => policy.RequireClaim(Constants.Strings.JwtClaimIdentifiers.Rol,
-                        Constants.Strings.JwtClaims.ApiAccess));
-            });
+         
         }
 
         private void ConfigureAppSettingsFiles(IServiceCollection services)
