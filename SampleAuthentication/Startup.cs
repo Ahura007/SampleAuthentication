@@ -77,14 +77,6 @@ namespace SampleAuthentication
                     .AllowCredentials();
             }));
 
-            // api user claim policy
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("ApiUser",
-                    policy => policy.RequireClaim(Constants.Strings.JwtClaimIdentifiers.Rol,
-                        Constants.Strings.JwtClaims.ApiAccess));
-            });
-
             //services.AddCors(policy =>
             //{
             //    policy.AddPolicy("LoginPost", builder =>
@@ -103,11 +95,13 @@ namespace SampleAuthentication
             //    });
             //});
 
-            //services.AddAuthorization(auth =>
-            //{
-            //    auth.AddPolicy("SuperAdmin", new AuthorizationPolicyBuilder().RequireRole("SuperAdmin").AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
-            //    auth.AddPolicy("Customer", new AuthorizationPolicyBuilder().RequireRole("Customer").AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
-            //});
+            services.AddAuthorization(auth =>
+            {
+               // auth.AddPolicy("ApiUser", policy => policy.RequireClaim(Constants.Strings.JwtClaimIdentifiers.Rol, Constants.Strings.JwtClaims.ApiAccess));
+               
+                auth.AddPolicy("SuperAdmin", new AuthorizationPolicyBuilder().RequireRole("SuperAdmin").AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
+                auth.AddPolicy("Customer", new AuthorizationPolicyBuilder().RequireRole("Customer").AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
+            });
 
         }
 

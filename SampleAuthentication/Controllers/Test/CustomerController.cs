@@ -1,0 +1,20 @@
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SampleAuthentication.Helpers;
+using SampleAuthentication.SeedWorks;
+
+namespace SampleAuthentication.Controllers.Test
+{
+    [Route("api/[controller]")]
+    [Authorize(Policy = "Customer")]
+    [ApiController]
+    public class CustomerController : ApiControllerBase
+    {
+        public async Task<IActionResult> Ok(string userId)
+        {
+            return Ok(new { message = ApiMessages.Ok });
+        }
+    }
+}
